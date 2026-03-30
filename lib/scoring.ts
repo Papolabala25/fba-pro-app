@@ -1,25 +1,60 @@
-export interface ProductData {
-  profitPower: number
-  competition: number
-  momentum: number
-  rankStability: number
-}
+export function enhancedScore(product: any) {
+  let score = 0;
+  let label = "⚔️ MEDIUM";
+  let insight = "";
 
-export function calculateAROGAScore(data: ProductData): number {
-  const weights = {
-    profitPower: 0.35,
-    competition: 0.25,
-    momentum: 0.25,
-    rankStability: 0.15
+  const strongBrands = ["Purina", "Nestlé", "Nike", "Adidas", "Apple"];
+
+  const isAmazon =
+    product.title.includes("Amazon Basics") ||
+    product.brand?.includes("Amazon") ||
+    product.seller === "Amazon";
+
+  const isStrongBrand = strongBrands.some((b) =>
+    product.brand?.includes(b)
+  );
+
+  // ❌ DESCARTAR AUTOMÁTICO
+  if (isAmazon) {
+    return {
+      label: "❌ AVOID",
+      insight: "Sold or dominated by Amazon. Not viable for private label."
+    };
   }
 
-  const competitionInverse = 100 - data.competition
+  if (isStrongBrand) {
+    return {
+      label: "⚠️ TEST",
+      insight:
+        "Strong brand dominance. Requires heavy differentiation and branding."
+    };
+  }
 
-  const score =
-    data.profitPower * weights.profitPower +
-    competitionInverse * weights.competition +
-    data.momentum * weights.momentum +
-    data.rankStability * weights.rankStability
+  // 🟢 SCORING NORMAL
+  if (product.roi > 35) score += 3;
+  else if (product.roi > 25) score += 2;
+  else score += 1;
 
-  return Math.round(score)
+  if (product.margin > 25) score += 3;
+  else if (product.margin > 15) score += 2;
+
+  if (product.sales > 150) score += 3;
+  else if (product.sales > 80) score += 2;
+
+  if (product.profit > 1000) score += 3;
+  else if (product.profit > 500) score += 2;
+
+  // 🟢 CLASIFICACIÓN FINAL
+  if (score >= 9) {
+    label = "🟢 WINNER";
+    insight = "High potential product with strong margins and scalability.";
+  } else if (score >= 6) {
+    label = "⚔️ MEDIUM";
+    insight = "Decent opportunity. Needs optimization and differentiation.";
+  } else {
+    label = "🔴 LOW";
+    insight = "Low profitability or high risk.";
+  }
+
+  return { label, insight };
 }

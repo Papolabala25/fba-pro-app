@@ -103,47 +103,82 @@ export default function Home() {
 
       {/* PRODUCTS */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
-        {products.map((p, i) => (
-          <div key={i} style={cardProduct}>
+        {products.map((p, i) => {
 
-            <h3 style={{ fontSize: 14 }}>{p.name}</h3>
+          const isWinner = p.verdict === "WINNER"
 
-            {/* VERDICT */}
-            <p style={{
-              color:
-                p.verdict === "WINNER"
-                  ? "gold"
-                  : p.verdict === "OPPORTUNITY"
-                  ? "orange"
-                  : "red",
-              fontWeight: "bold"
+          return (
+            <div key={i} style={{
+              ...cardProduct,
+              border: isWinner ? "1px solid gold" : "1px solid #222",
+              boxShadow: isWinner ? "0 0 12px rgba(255,215,0,0.4)" : "none"
             }}>
-              {p.verdict}
-            </p>
 
-            <p>💰 ${p.price}</p>
-            <p>📊 ROI: {p.roi}%</p>
-            <p>📦 Margin: {p.margin}%</p>
-            <p>💸 Profit: ${p.profit}</p>
-            <p>📈 Sales: {p.sales}/month</p>
-            <p>⚔️ {p.competition}</p>
+              {/* PRODUCT NAME */}
+              <h3 style={{ fontSize: 14 }}>{p.name}</h3>
 
-            {/* 🧠 AI INSIGHT */}
-            <p style={{
-              marginTop: 12,
-              fontSize: 13,
-              color: "#ccc",
-              lineHeight: "1.4"
-            }}>
-              🧠 {p.insight}
-            </p>
+              {/* 🔍 VIEW ON AMAZON */}
+              <a
+                href={`https://www.amazon.com/s?k=${encodeURIComponent(p.name)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "#4da6ff",
+                  fontSize: 12,
+                  display: "block",
+                  marginBottom: 8
+                }}
+              >
+                🔍 View on Amazon
+              </a>
 
-            <button style={saveButton}>
-              Save
-            </button>
+              {/* VERDICT */}
+              <p style={{
+                color:
+                  p.verdict === "WINNER"
+                    ? "gold"
+                    : p.verdict === "OPPORTUNITY"
+                    ? "orange"
+                    : "red",
+                fontWeight: "bold",
+                fontSize: 16
+              }}>
+                {p.verdict}
+              </p>
 
-          </div>
-        ))}
+              <p>💰 ${p.price}</p>
+              <p>📊 ROI: {p.roi}%</p>
+              <p>📦 Margin: {p.margin}%</p>
+              <p>💸 Profit: ${p.profit}</p>
+              <p>📈 Sales: {p.sales}/month</p>
+              <p>⚔️ {p.competition}</p>
+
+              {/* 🧠 AI INSIGHT */}
+              <p style={{
+                marginTop: 12,
+                fontSize: 13,
+                color: "#ccc",
+                lineHeight: "1.4"
+              }}>
+                🧠 {p.insight}
+              </p>
+
+              {/* 💡 TIP */}
+              <p style={{
+                marginTop: 8,
+                fontSize: 12,
+                color: "#888"
+              }}>
+                💡 Tip: Source from USA or Alibaba and improve packaging, branding or bundle.
+              </p>
+
+              <button style={saveButton}>
+                Save
+              </button>
+
+            </div>
+          )
+        })}
       </div>
 
     </main>
