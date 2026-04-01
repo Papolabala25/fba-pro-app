@@ -1,5 +1,6 @@
 "use client"
-// VERSION 2.0 UI PRO
+
+// VERSION PRO FINAL 🚀
 
 import { useState } from "react"
 
@@ -46,7 +47,7 @@ export default function Home() {
       
       {/* HEADER */}
       <h1 style={{ color: "gold", fontSize: 32, marginBottom: 10 }}>
-        FBA Intelligence PRO
+        FBA Intelligence PRO 🚀
       </h1>
 
       <p style={{ color: "#aaa", marginBottom: 20 }}>
@@ -115,10 +116,10 @@ export default function Home() {
               boxShadow: isWinner ? "0 0 12px rgba(255,215,0,0.4)" : "none"
             }}>
 
-              {/* PRODUCT NAME */}
+              {/* NAME */}
               <h3 style={{ fontSize: 14 }}>{p.name}</h3>
 
-              {/* 🔍 VIEW ON AMAZON */}
+              {/* AMAZON LINK */}
               <a
                 href={`https://www.amazon.com/s?k=${encodeURIComponent(p.name)}`}
                 target="_blank"
@@ -154,7 +155,7 @@ export default function Home() {
               <p>📈 Sales: {p.sales}/month</p>
               <p>⚔️ {p.competition}</p>
 
-              {/* 🧠 AI INSIGHT */}
+              {/* INSIGHT */}
               <p style={{
                 marginTop: 12,
                 fontSize: 13,
@@ -164,13 +165,13 @@ export default function Home() {
                 🧠 {p.insight}
               </p>
 
-              {/* 💡 TIP */}
+              {/* TIP */}
               <p style={{
                 marginTop: 8,
                 fontSize: 12,
                 color: "#888"
               }}>
-                💡 Tip: Source from USA or Alibaba and improve packaging, branding or bundle.
+                💡 Tip: Source from USA or Alibaba. Improve branding, packaging or bundle to dominate.
               </p>
 
               <button style={saveButton}>
