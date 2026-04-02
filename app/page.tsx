@@ -71,7 +71,10 @@ export default function Home() {
         />
 
         <button
-          onClick={handleSearch}
+           onClick={() => {
+             alert("CLICK OK")
+             handleSearch()
+          }}
           style={{
             background: "gold",
             color: "#000",
@@ -81,7 +84,7 @@ export default function Home() {
             cursor: "pointer"
           }}
         >
-          {loading ? "Analyzing..." : "Analyze Market"}
+          Analyze Market
         </button>
       </div>
 
