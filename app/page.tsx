@@ -1,4 +1,5 @@
 "use client"
+console.log("CLIENT RENDER OK")
 
 // VERSION PRO FINAL 🚀
 
@@ -186,6 +187,9 @@ export default function Home() {
         })}
       </div>
 
+if (typeof window === "undefined") {
+  return <div>Loading...</div>
+}
     </main>
   )
 }
