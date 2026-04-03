@@ -84,7 +84,6 @@ export default function Home() {
 
         <button
           onClick={() => {
-            alert("CLICK OK")
             handleSearch()
           }}
           style={{
