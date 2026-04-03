@@ -1,7 +1,4 @@
 "use client"
-console.log("CLIENT RENDER OK")
-
-// VERSION PRO FINAL 🚀
 
 import { useState } from "react"
 
@@ -11,11 +8,20 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
 
   const handleSearch = async () => {
-    if (!keyword) return
+    console.log("1. Click detectado")
+
+    if (!keyword) {
+      console.log("2. No keyword")
+      return
+    }
+
+    console.log("3. Keyword:", keyword)
 
     setLoading(true)
 
     try {
+      console.log("4. Antes de fetch")
+
       const res = await fetch("/api/discover", {
         method: "POST",
         headers: {
@@ -24,10 +30,15 @@ export default function Home() {
         body: JSON.stringify({ keyword })
       })
 
+      console.log("5. Fetch ejecutado", res)
+
       const data = await res.json()
+
+      console.log("6. Data recibida", data)
+
       setProducts(data.data || [])
     } catch (error) {
-      console.error(error)
+      console.error("ERROR:", error)
     }
 
     setLoading(false)
@@ -48,7 +59,7 @@ export default function Home() {
       
       {/* HEADER */}
       <h1 style={{ color: "gold", fontSize: 32, marginBottom: 10 }}>
-        FBA Intelligence PRO 🚀
+        FBA Intelligence PRO
       </h1>
 
       <p style={{ color: "#aaa", marginBottom: 20 }}>
@@ -72,9 +83,9 @@ export default function Home() {
         />
 
         <button
-           onClick={() => {
-             alert("CLICK OK")
-             handleSearch()
+          onClick={() => {
+            alert("CLICK OK")
+            handleSearch()
           }}
           style={{
             background: "gold",
@@ -85,9 +96,14 @@ export default function Home() {
             cursor: "pointer"
           }}
         >
-          Analyze Market
+          {loading ? "Analyzing..." : "Analyze Market"}
         </button>
       </div>
+
+      {/* DEBUG */}
+      <p style={{ marginBottom: 20 }}>
+        Productos encontrados: {products.length}
+      </p>
 
       {/* STATS */}
       <div style={{ display: "flex", gap: 20, marginBottom: 30 }}>
@@ -110,7 +126,6 @@ export default function Home() {
       {/* PRODUCTS */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 20 }}>
         {products.map((p, i) => {
-
           const isWinner = p.verdict === "WINNER"
 
           return (
@@ -120,10 +135,8 @@ export default function Home() {
               boxShadow: isWinner ? "0 0 12px rgba(255,215,0,0.4)" : "none"
             }}>
 
-              {/* NAME */}
               <h3 style={{ fontSize: 14 }}>{p.name}</h3>
 
-              {/* AMAZON LINK */}
               <a
                 href={`https://www.amazon.com/s?k=${encodeURIComponent(p.name)}`}
                 target="_blank"
@@ -138,7 +151,6 @@ export default function Home() {
                 🔍 View on Amazon
               </a>
 
-              {/* VERDICT */}
               <p style={{
                 color:
                   p.verdict === "WINNER"
@@ -159,7 +171,6 @@ export default function Home() {
               <p>📈 Sales: {p.sales}/month</p>
               <p>⚔️ {p.competition}</p>
 
-              {/* INSIGHT */}
               <p style={{
                 marginTop: 12,
                 fontSize: 13,
@@ -167,15 +178,6 @@ export default function Home() {
                 lineHeight: "1.4"
               }}>
                 🧠 {p.insight}
-              </p>
-
-              {/* TIP */}
-              <p style={{
-                marginTop: 8,
-                fontSize: 12,
-                color: "#888"
-              }}>
-                💡 Tip: Source from USA or Alibaba. Improve branding, packaging or bundle to dominate.
               </p>
 
               <button style={saveButton}>
@@ -187,9 +189,6 @@ export default function Home() {
         })}
       </div>
 
-if (typeof window === "undefined") {
-  return <div>Loading...</div>
-}
     </main>
   )
 }
