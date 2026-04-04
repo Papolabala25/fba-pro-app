@@ -1,102 +1,76 @@
 import { NextResponse } from "next/server"
 
+const MELI_SITES: any = {
+  mx: "MLM",
+  co: "MCO",
+  ar: "MLA",
+  cl: "MLC"
+}
+
 function analyze(p: any) {
-  const roi = Math.round(((p.price - p.cost) / p.cost) * 100)
-  const margin = Math.round(((p.price - p.cost) / p.price) * 100)
-  const profit = Math.round((p.price - p.cost) * p.sales)
+  const cost = p.price * 0.4
+  const roi = Math.round(((p.price - cost) / cost) * 100)
+  const profit = Math.round((p.price - cost) * (p.sales || 50))
 
-  let verdict = "REJECT"
+  // 🔥 SCORE PRO (tu ventaja competitiva)
+  let score = 0
 
-  if (roi > 40 && p.sales > 100 && p.competition === "LOW") {
-    verdict = "WINNER"
-  } else if (roi > 25) {
-    verdict = "OPPORTUNITY"
-  }
+  if (roi > 50) score += 40
+  else if (roi > 30) score += 25
+
+  if (p.sales > 200) score += 30
+  else if (p.sales > 50) score += 15
+
+  if (p.price > 20 && p.price < 80) score += 20
+
+  if (score > 100) score = 100
 
   return {
     ...p,
     roi,
-    margin,
     profit,
-    verdict,
+    score,
     insight:
-      verdict === "WINNER"
-        ? "High ROI + low competition. Strong opportunity."
-        : "Moderate opportunity. Needs differentiation."
+      score > 80
+        ? "High demand + strong margins. Ideal opportunity."
+        : score > 60
+        ? "Good potential. Needs differentiation."
+        : "Low priority product."
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
+    const { keyword, market, country } = await req.json()
 
-    const keyword = body.keyword || "test"
-    const market = body.market || "amazon"
-
-    let products: any[] = []
-
-    // 🔵 AMAZON (SIEMPRE FUNCIONA)
-    if (market === "amazon") {
-      products = [
-        {
-          name: `${keyword} test product`,
-          price: 30,
-          cost: 10,
-          sales: 200,
-          competition: "LOW"
-        },
-        {
-          name: `${keyword} premium kit`,
-          price: 60,
-          cost: 25,
-          sales: 120,
-          competition: "MEDIUM"
-        }
-      ]
-    }
-
-    // 🟡 MERCADOLIBRE (RESPUESTA SIMPLE)
+    // 🔥 MERCADOLIBRE REAL
     if (market === "meli") {
-      products = [
-        {
-          name: `${keyword} kit profesional`,
-          price: 500,
-          cost: 200,
-          sales: 150,
-          competition: "LOW"
-        },
-        {
-          name: `${keyword} versión económica`,
-          price: 300,
-          cost: 120,
-          sales: 220,
-          competition: "MEDIUM"
-        }
-      ]
+      const site = MELI_SITES[country] || "MLM"
+
+      const res = await fetch(
+        `https://api.mercadolibre.com/sites/${site}/search?q=${keyword}`
+      )
+
+      const data = await res.json()
+
+      const products = data.results.slice(0, 12).map((item: any) => ({
+        name: item.title,
+        price: item.price,
+        currency: item.currency_id,
+        sales: item.sold_quantity || 0,
+        link: item.permalink
+      }))
+
+      const analyzed = products.map(analyze)
+        .sort((a: any, b: any) => b.score - a.score)
+
+      return NextResponse.json({ data: analyzed })
     }
 
-    const analyzed = products.map(analyze)
-
-    return NextResponse.json({ data: analyzed })
+    // ⚠️ AMAZON (placeholder listo para API real)
+    return NextResponse.json({ data: [] })
 
   } catch (error) {
-    console.log("ERROR API:", error)
-
-    return NextResponse.json({
-      data: [
-        {
-          name: "ERROR FALLBACK PRODUCT",
-          price: 20,
-          cost: 5,
-          sales: 100,
-          competition: "LOW",
-          roi: 300,
-          margin: 75,
-          profit: 1500,
-          verdict: "WINNER",
-          insight: "Fallback funcionando"
-        }
-      ]
-    })
+    return NextResponse.json({ data: [] })
   }
 }
