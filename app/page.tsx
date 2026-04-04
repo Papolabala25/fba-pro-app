@@ -133,7 +133,11 @@ export default function Home() {
               <h3 style={{ fontSize: 14 }}>{p.name}</h3>
 
               <a
-                href={`https://www.${market === "amazon" ? "amazon.com" : "mercadolibre.com.mx"}/s?k=${encodeURIComponent(p.name)}`}
+                href={
+                  market === "amazon"
+                    ? `https://www.amazon.com/s?k=${encodeURIComponent(p.name)}`
+                    : `https://listado.mercadolibre.com.mx/${encodeURIComponent(p.name)}`
+                }
                 target="_blank"
                 style={{ color: "#4da6ff", fontSize: 12 }}
               >
@@ -152,7 +156,9 @@ export default function Home() {
                 {p.verdict}
               </p>
 
-              <p>💰 ${p.price}</p>
+              <p>
+                💰 {market === "amazon" ? `$${p.price}` : `$${p.price} MXN`}
+              </p>
               <p>📊 ROI: {p.roi}%</p>
               <p>📦 Margin: {p.margin}%</p>
               <p>💸 Profit: ${p.profit}</p>
