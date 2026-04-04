@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server"
 
-// 🔥 DEBUG: esto nos confirma en logs que esta versión está corriendo
-console.log("🔥 VERSION NUEVA API V2 🔥")
-
-// 🚫 Marcas prohibidas (no queremos competir contra gigantes)
-const forbiddenBrands = ["Nike", "Apple", "Samsung", "Sony", "Adidas", "Purina"]
+const forbiddenBrands = ["Nike", "Apple", "Samsung"]
 
 function isGenericProduct(name: string) {
   return !forbiddenBrands.some(brand =>
@@ -12,45 +8,6 @@ function isGenericProduct(name: string) {
   )
 }
 
-// 🧠 Generador base (simulación inteligente)
-function generateProducts(keyword: string) {
-  return [
-    {
-      name: "🚨 CAMBIO REAL VERIFICADO 🚨",
-      price: 35,
-      cost: 10,
-      sales: 250,
-      competition: "LOW",
-      isAmazon: false
-    },
-    {
-      name: `${keyword} premium bundle kit`,
-      price: 60,
-      cost: 25,
-      sales: 120,
-      competition: "MEDIUM",
-      isAmazon: false
-    },
-    {
-      name: `Nike ${keyword} edition`,
-      price: 80,
-      cost: 40,
-      sales: 500,
-      competition: "HIGH",
-      isAmazon: false
-    },
-    {
-      name: `${keyword} basic tool`,
-      price: 15,
-      cost: 6,
-      sales: 200,
-      competition: "LOW",
-      isAmazon: true
-    }
-  ]
-}
-
-// 📊 Motor de análisis
 function analyze(p: any) {
   const roi = Math.round(((p.price - p.cost) / p.cost) * 100)
   const margin = Math.round(((p.price - p.cost) / p.price) * 100)
@@ -72,31 +29,63 @@ function analyze(p: any) {
     verdict,
     insight:
       verdict === "WINNER"
-        ? "High ROI + low competition. Strong private label potential."
+        ? "High ROI + low competition. Strong opportunity."
         : "Moderate opportunity. Needs differentiation."
   }
 }
 
-// 🚀 ENDPOINT PRINCIPAL
 export async function POST(req: Request) {
-  try {
-    const { keyword } = await req.json()
+  const { keyword, market } = await req.json()
 
-    let products = generateProducts(keyword)
+  let products: any[] = []
 
-    // 🔴 FILTRO PRO (clave de tu negocio)
-    products = products.filter(p =>
-      isGenericProduct(p.name) && !p.isAmazon
-    )
-
-    const analyzed = products.map(analyze)
-
-    return NextResponse.json({ data: analyzed })
-
-  } catch (error) {
-    return NextResponse.json({
-      error: "API error",
-      details: error
-    })
+  // AMAZON
+  if (market === "amazon") {
+    products = [
+      {
+        name: `${keyword} resistance bands`,
+        price: 25,
+        cost: 8,
+        sales: 300,
+        competition: "LOW",
+        isAmazon: false
+      },
+      {
+        name: `${keyword} premium kit`,
+        price: 60,
+        cost: 25,
+        sales: 120,
+        competition: "MEDIUM",
+        isAmazon: false
+      }
+    ]
   }
+
+  // MERCADOLIBRE
+  if (market === "meli") {
+    products = [
+      {
+        name: `${keyword} kit profesional`,
+        price: 500,
+        cost: 200,
+        sales: 150,
+        competition: "LOW",
+        isAmazon: false
+      },
+      {
+        name: `${keyword} versión económica`,
+        price: 300,
+        cost: 120,
+        sales: 220,
+        competition: "MEDIUM",
+        isAmazon: false
+      }
+    ]
+  }
+
+  products = products.filter(p => isGenericProduct(p.name))
+
+  const analyzed = products.map(analyze)
+
+  return NextResponse.json({ data: analyzed })
 }

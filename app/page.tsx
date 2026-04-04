@@ -4,41 +4,28 @@ import { useState } from "react"
 
 export default function Home() {
   const [keyword, setKeyword] = useState("")
+  const [market, setMarket] = useState("amazon")
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
   const handleSearch = async () => {
-    console.log("1. Click detectado")
-
-    if (!keyword) {
-      console.log("2. No keyword")
-      return
-    }
-
-    console.log("3. Keyword:", keyword)
+    if (!keyword) return
 
     setLoading(true)
 
     try {
-      console.log("4. Antes de fetch")
-
       const res = await fetch("/api/discover", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ keyword })
+        body: JSON.stringify({ keyword, market })
       })
 
-      console.log("5. Fetch ejecutado", res)
-
       const data = await res.json()
-
-      console.log("6. Data recibida", data)
-
       setProducts(data.data || [])
     } catch (error) {
-      console.error("ERROR:", error)
+      console.error(error)
     }
 
     setLoading(false)
@@ -56,25 +43,25 @@ export default function Home() {
 
   return (
     <main style={{ background: "#000", minHeight: "100vh", padding: 30, color: "#fff" }}>
-      
-      {/* HEADER */}
-      <h1 style={{ color: "gold", fontSize: 32, marginBottom: 10 }}>
+
+      <h1 style={{ color: "gold", fontSize: 32 }}>
         FBA Intelligence PRO
       </h1>
 
       <p style={{ color: "#aaa", marginBottom: 20 }}>
-        Market Intelligence Engine for Amazon FBA
+        MultiMarket AI Engine (Amazon + MercadoLibre)
       </p>
 
-      {/* INPUT */}
+      {/* INPUT + SELECT */}
       <div style={{ display: "flex", gap: 10, marginBottom: 30 }}>
+
         <input
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
           placeholder="Enter niche..."
           style={{
             padding: 12,
-            width: 300,
+            width: 250,
             borderRadius: 8,
             border: "1px solid #333",
             background: "#111",
@@ -82,10 +69,23 @@ export default function Home() {
           }}
         />
 
-        <button
-          onClick={() => {
-            handleSearch()
+        <select
+          value={market}
+          onChange={(e) => setMarket(e.target.value)}
+          style={{
+            padding: 12,
+            borderRadius: 8,
+            background: "#111",
+            color: "#fff",
+            border: "1px solid #333"
           }}
+        >
+          <option value="amazon">Amazon</option>
+          <option value="meli">MercadoLibre</option>
+        </select>
+
+        <button
+          onClick={handleSearch}
           style={{
             background: "gold",
             color: "#000",
@@ -97,12 +97,8 @@ export default function Home() {
         >
           {loading ? "Analyzing..." : "Analyze Market"}
         </button>
-      </div>
 
-      {/* DEBUG */}
-      <p style={{ marginBottom: 20 }}>
-        Productos encontrados: {products.length}
-      </p>
+      </div>
 
       {/* STATS */}
       <div style={{ display: "flex", gap: 20, marginBottom: 30 }}>
@@ -137,17 +133,11 @@ export default function Home() {
               <h3 style={{ fontSize: 14 }}>{p.name}</h3>
 
               <a
-                href={`https://www.amazon.com/s?k=${encodeURIComponent(p.name)}`}
+                href={`https://www.${market === "amazon" ? "amazon.com" : "mercadolibre.com.mx"}/s?k=${encodeURIComponent(p.name)}`}
                 target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "#4da6ff",
-                  fontSize: 12,
-                  display: "block",
-                  marginBottom: 8
-                }}
+                style={{ color: "#4da6ff", fontSize: 12 }}
               >
-                🔍 View on Amazon
+                🔍 View Product
               </a>
 
               <p style={{
@@ -157,8 +147,7 @@ export default function Home() {
                     : p.verdict === "OPPORTUNITY"
                     ? "orange"
                     : "red",
-                fontWeight: "bold",
-                fontSize: 16
+                fontWeight: "bold"
               }}>
                 {p.verdict}
               </p>
@@ -170,18 +159,9 @@ export default function Home() {
               <p>📈 Sales: {p.sales}/month</p>
               <p>⚔️ {p.competition}</p>
 
-              <p style={{
-                marginTop: 12,
-                fontSize: 13,
-                color: "#ccc",
-                lineHeight: "1.4"
-              }}>
+              <p style={{ marginTop: 10, fontSize: 13, color: "#ccc" }}>
                 🧠 {p.insight}
               </p>
-
-              <button style={saveButton}>
-                Save
-              </button>
 
             </div>
           )
@@ -191,8 +171,6 @@ export default function Home() {
     </main>
   )
 }
-
-/* STYLES */
 
 const cardStat = {
   background: "#111",
@@ -209,14 +187,4 @@ const cardProduct = {
   borderRadius: 10,
   width: 260,
   border: "1px solid #222"
-}
-
-const saveButton = {
-  marginTop: 10,
-  background: "gold",
-  color: "#000",
-  padding: "8px 12px",
-  borderRadius: 6,
-  cursor: "pointer",
-  border: "none"
 }
