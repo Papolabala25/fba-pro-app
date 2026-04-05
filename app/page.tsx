@@ -3,219 +3,175 @@
 import { useState } from "react"
 
 export default function Home() {
-  const [keyword, setKeyword] = useState("")
-  const [market, setMarket] = useState("meli")
-  const [country, setCountry] = useState("mx")
-  const [products, setProducts] = useState<any[]>([])
+  const [query, setQuery] = useState("")
+  const [mode, setMode] = useState("amazon")
+  const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
 
-  const handleSearch = async () => {
-    if (!keyword) return
-    setLoading(true)
-
-    try {
-      const res = await fetch("/api/discover", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ keyword, market, country })
-      })
-
-      const data = await res.json()
-      setProducts(data.data || [])
-    } catch (error) {
-      console.error(error)
+  const search = async () => {
+    if (!query) {
+      alert("Escribe un producto")
+      return
     }
 
-    setLoading(false)
+    setLoading(true)
+    setData(null)
+
+    try {
+      const res = await fetch("/api/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          query,
+          marketplace: mode,
+        }),
+      })
+
+      // 🔥 DEBUG CRÍTICO
+      if (!res.ok) {
+        const text = await res.text()
+        console.error("❌ ERROR HTTP:", res.status, text)
+        alert("Error HTTP: " + res.status)
+        return
+      }
+
+      const json = await res.json()
+
+      console.log("🔥 RESPONSE:", json)
+
+      // 🔥 DEBUG VISUAL EN PRODUCCIÓN
+      if (!json.success) {
+        alert("Error API: " + json.error)
+      }
+
+      setData(json)
+    } catch (err: any) {
+      console.error("❌ FETCH ERROR:", err)
+      alert("Error de conexión: " + err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const winners = products.filter(p => p.score >= 80).length
-
   return (
-    <main style={mainStyle}>
+    <main style={{ padding: 20, fontFamily: "Arial" }}>
+      <h1>🚀 Product Intelligence SaaS</h1>
 
-      {/* HEADER */}
-      <div style={{ marginBottom: 30 }}>
-        <h1 style={titleStyle}>FBA Intelligence PRO</h1>
-        <p style={subtitleStyle}>
-          MultiMarket Intelligence Engine • Real Data • Decision System
-        </p>
-      </div>
+      {/* INPUT */}
+      <input
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder="Buscar producto..."
+        style={{ padding: 8, width: 250 }}
+      />
 
-      {/* CONTROLES */}
-      <div style={controlsStyle}>
+      {/* SELECT */}
+      <select
+        value={mode}
+        onChange={(e) => setMode(e.target.value)}
+        style={{ marginLeft: 10, padding: 8 }}
+      >
+        <option value="amazon">Amazon</option>
+        <option value="mercadolibre">MercadoLibre</option>
+        <option value="arbitrage">🔥 Arbitrage</option>
+      </select>
 
-        <input
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
-          placeholder="Search product opportunity..."
-          style={inputStyle}
-        />
+      {/* BUTTON */}
+      <button
+        onClick={search}
+        style={{ marginLeft: 10, padding: 8 }}
+      >
+        {loading ? "Buscando..." : "Buscar"}
+      </button>
 
-        <select value={market} onChange={(e) => setMarket(e.target.value)} style={selectStyle}>
-          <option value="meli">MercadoLibre</option>
-          <option value="amazon">Amazon</option>
-        </select>
+      {/* DEBUG RAW */}
+      <h2>🧪 Debug (Respuesta cruda)</h2>
+      <pre
+        style={{
+          background: "#000",
+          color: "#0f0",
+          padding: 10,
+          fontSize: 12,
+          overflow: "auto",
+        }}
+      >
+        {JSON.stringify(data, null, 2)}
+      </pre>
 
-        <select value={country} onChange={(e) => setCountry(e.target.value)} style={selectStyle}>
-          <option value="mx">México</option>
-          <option value="co">Colombia</option>
-          <option value="ar">Argentina</option>
-          <option value="cl">Chile</option>
-        </select>
+      {/* ARBITRAJE */}
+      {data?.type === "arbitrage" && (
+        <>
+          <h2>🔥 Oportunidades de Arbitrage</h2>
 
-        <button onClick={handleSearch} style={buttonStyle}>
-          {loading ? "Analyzing..." : "Analyze"}
-        </button>
+          {data.opportunities?.length === 0 && (
+            <p>No se encontraron oportunidades</p>
+          )}
 
-      </div>
+          {data.opportunities?.map((o: any, i: number) => (
+            <div
+              key={i}
+              style={{
+                border: "2px solid gold",
+                margin: 10,
+                padding: 10,
+              }}
+            >
+              <h3>{o.title}</h3>
 
-      {/* STATS */}
-      <div style={statsContainer}>
-        <Stat title="Products" value={products.length} />
-        <Stat title="High Score" value={winners} />
-        <Stat title="Top Score" value={products[0]?.score || 0} />
-      </div>
+              <p>Compra (ML): ${o.buyPrice}</p>
+              <p>Venta (Amazon): ${o.sellPrice}</p>
 
-      {/* RESULTADOS */}
-      <div style={gridStyle}>
-        {products.map((p, i) => (
-          <div
-            key={i}
-            style={{
-              ...cardStyle,
-              border: p.score >= 80 ? "1px solid gold" : "1px solid #222"
-            }}
-          >
+              <p>Profit: ${o.profit.toFixed(2)}</p>
+              <p>ROI: {o.roi.toFixed(2)}%</p>
 
-            <h3 style={{ fontSize: 14 }}>{p.name}</h3>
+              <p>{o.decision}</p>
 
-            <a href={p.link} target="_blank" style={linkStyle}>
-              🔍 View Product
-            </a>
-
-            {/* SCORE (DIFERENCIADOR CLAVE) */}
-            <div style={scoreBox(p.score)}>
-              SCORE {p.score}/100
+              <a href={o.buyLink} target="_blank">
+                Comprar
+              </a>{" "}
+              |{" "}
+              <a href={o.sellLink} target="_blank">
+                Vender
+              </a>
             </div>
+          ))}
+        </>
+      )}
 
-            <p>💰 {p.currency} {p.price}</p>
-            <p>📈 Sales: {p.sales}</p>
+      {/* NORMAL */}
+      {data?.type === "normal" && (
+        <>
+          <h2>📦 Productos</h2>
 
-            <p>💸 Profit Est: {p.currency} {p.profit}</p>
-            <p>📊 ROI: {p.roi}%</p>
+          {data.products?.length === 0 && (
+            <p>No se encontraron productos</p>
+          )}
 
-            <p style={insightStyle}>
-              🧠 {p.insight}
-            </p>
+          {data.products?.map((p: any, i: number) => (
+            <div
+              key={i}
+              style={{
+                border: "1px solid #ccc",
+                margin: 10,
+                padding: 10,
+              }}
+            >
+              <img src={p.image} width={80} />
 
-          </div>
-        ))}
-      </div>
+              <h3>{p.title}</h3>
 
+              <p>Precio: ${p.price}</p>
+              <p>Marketplace: {p.marketplace}</p>
+
+              <a href={p.link} target="_blank">
+                Ver producto
+              </a>
+            </div>
+          ))}
+        </>
+      )}
     </main>
   )
 }
-
-/* COMPONENTE */
-function Stat({ title, value }: any) {
-  return (
-    <div style={statCard}>
-      <h4>{title}</h4>
-      <p>{value}</p>
-    </div>
-  )
-}
-
-/* ESTILOS */
-const mainStyle = {
-  background: "#0a0a0a",
-  minHeight: "100vh",
-  padding: 30,
-  color: "#fff",
-  fontFamily: "Arial"
-}
-
-const titleStyle = { fontSize: 34, color: "gold" }
-const subtitleStyle = { color: "#aaa" }
-
-const controlsStyle = {
-  display: "flex",
-  gap: 10,
-  marginBottom: 30
-}
-
-const inputStyle = {
-  padding: 12,
-  width: 260,
-  borderRadius: 8,
-  background: "#111",
-  color: "#fff",
-  border: "1px solid #333"
-}
-
-const selectStyle = {
-  padding: 12,
-  borderRadius: 8,
-  background: "#111",
-  color: "#fff",
-  border: "1px solid #333"
-}
-
-const buttonStyle = {
-  background: "gold",
-  color: "#000",
-  padding: "12px 20px",
-  borderRadius: 8,
-  fontWeight: "bold",
-  cursor: "pointer"
-}
-
-const statsContainer = {
-  display: "flex",
-  gap: 20,
-  marginBottom: 30
-}
-
-const statCard = {
-  background: "#111",
-  padding: 15,
-  borderRadius: 10,
-  border: "1px solid #222"
-}
-
-const gridStyle = {
-  display: "flex",
-  flexWrap: "wrap" as const,
-  gap: 20
-}
-
-const cardStyle = {
-  width: 260,
-  padding: 20,
-  borderRadius: 12,
-  background: "#111"
-}
-
-const linkStyle = {
-  color: "#4da6ff",
-  fontSize: 12
-}
-
-const insightStyle = {
-  fontSize: 12,
-  color: "#ccc"
-}
-
-const scoreBox = (score: number) => ({
-  marginTop: 10,
-  marginBottom: 10,
-  padding: 8,
-  borderRadius: 6,
-  background:
-    score > 80 ? "gold" :
-    score > 60 ? "orange" : "#333",
-  color: "#000",
-  fontWeight: "bold",
-  textAlign: "center" as const
-})
